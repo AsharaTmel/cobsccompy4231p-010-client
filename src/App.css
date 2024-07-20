@@ -1,0 +1,37 @@
+.App {
+  text-align: center;
+  font-family: 'Roboto', sans-serif; /* Apply Roboto font */
+  margin: 0; /* Remove default margin */
+  padding: 0; /* Remove default padding */
+  border: none; /* Ensure no border is applied */
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+.App-header {
+  background-color: #01342c; /* Dark brown background for header */
+  min-height: 20vh; /* Adjust height for header */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+  border: none; /* Ensure no border is applied */
+}
+
+.App-link {
+  color: #f4f1eb; /* Light brown color for the link */
+}
+
+.App-content {
+  display: flex;
+  position: relative; /* Ensure the sidebar can overlap */
+  height: 90vh; /* Adjust height for content */
+  margin: 0; /* Remove default margin */
+  padding: 0; /* Remove default padding */
+  border: none; /* Ensure no border is applied */
+}
