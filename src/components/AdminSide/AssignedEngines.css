@@ -1,0 +1,47 @@
+.assigned-engines {
+    padding: 20px;
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  table, th, td {
+    border: 1px solid black;
+  }
+  
+  th, td {
+    padding: 10px;
+    text-align: left;
+  }
+  
+  th {
+    background-color: #f4f4f4;
+  }
+  
+  .assign-section {
+    margin-top: 20px;
+  }
+  
+  .error {
+    color: red;
+  }
+
+  /* Container for error messages */
+.error-container {
+    margin: 20px 0;
+    padding: 15px;
+    border: 1px solid red;
+    border-radius: 5px;
+    background-color: #fdd;
+}
+
+/* Error message text */
+.error-message {
+    color: red;
+    font-weight: bold;
+    margin: 0;
+}
+
+  
