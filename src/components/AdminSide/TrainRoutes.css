@@ -1,0 +1,17 @@
+.train-routes {
+    padding: 20px;
+    background-color: #ffffff; /* White background for the section */
+  }
+  
+  .train-routes h2 {
+    color: #4a2c1b; /* Dark brown color */
+    font-size: 1.75rem;
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  
+  .train-routes .train-table {
+    margin: 0 auto;
+    max-width: 1200px;
+  }
+  
