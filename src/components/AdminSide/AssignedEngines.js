@@ -10,14 +10,12 @@ const AssignedEngines = () => {
   const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
-    // Fetch assigned train engines
-    fetch('http://localhost:5001/api/fulltrains/')
+    fetch('http://3.107.29.47:5001/api/fulltrains/')
       .then(response => response.json())
       .then(data => {
         setTrainEngines(data);
-        // Fetch train details
         data.forEach(item => {
-          fetch(`http://localhost:5001/api/trains/${item.train_id}/`)
+          fetch(`http://3.107.29.47:5001/api/trains/${item.train_id}/`)
             .then(response => response.json())
             .then(train => {
               setTrains(prevTrains => ({
@@ -32,14 +30,13 @@ const AssignedEngines = () => {
   const handleAssign = () => {
     const { train_id, engine_id } = assignData;
 
-    // Validation
     if (!train_id || !engine_id) {
       setError('Both train_id and engine_id are required.');
       setModalOpen(true);
       return;
     }
 
-    fetch('http://localhost:5001/api/fulltrains/train/assign', {
+    fetch('http://3.107.29.47:5001/api/fulltrains/train/assign', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(assignData),
@@ -52,8 +49,7 @@ const AssignedEngines = () => {
         } else {
           setError('');
           setAssignData({ train_id: '', engine_id: '' });
-          // Refresh the list
-          fetch('http://localhost:5001/api/fulltrains/')
+          fetch('http://3.107.29.47:5001/api/fulltrains/')
             .then(response => response.json())
             .then(data => setTrainEngines(data));
         }
@@ -61,7 +57,7 @@ const AssignedEngines = () => {
   };
 
   const handleUnassign = (train_id) => {
-    fetch(`http://localhost:5001/api/fulltrains/train/${train_id}/unassign`, {
+    fetch(`http://3.107.29.47:5001/api/fulltrains/train/${train_id}/unassign`, {
       method: 'PATCH',
     })
       .then(response => response.json())
@@ -71,8 +67,7 @@ const AssignedEngines = () => {
           setModalOpen(true);
         } else {
           setError('');
-          // Refresh the list
-          fetch('http://localhost:5001/api/fulltrains/')
+          fetch('http://3.107.29.47:5001/api/fulltrains/')
             .then(response => response.json())
             .then(data => setTrainEngines(data));
         }
