@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import './TrainDetail.css';
+import './TrainDetails.css';
 
 const TrainDetail = ({ trainId }) => {
   const [train, setTrain] = useState(null);
