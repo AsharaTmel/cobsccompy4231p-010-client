@@ -7,7 +7,7 @@ const TrainTable = ({ route }) => {
 
   const fetchTrainData = async () => {
     try {
-      const response = await fetch(`http://localhost:5001/api/trains/route/${route.route_id}`);
+      const response = await fetch(`http://3.107.29.47:5001/api/trains/route/${route.route_id}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -18,7 +18,7 @@ const TrainTable = ({ route }) => {
       }
 
       const trainDataPromises = data.map(async (train) => {
-        const trainResponse = await fetch(`http://localhost:5001/api/fulltrains/train/${train.train_id}`);
+        const trainResponse = await fetch(`http://3.107.29.47:5001/api/fulltrains/train/${train.train_id}`);
         if (!trainResponse.ok) {
           throw new Error(`HTTP error! status: ${trainResponse.status}`);
         }
@@ -29,7 +29,7 @@ const TrainTable = ({ route }) => {
           throw new Error('Engine ID not found');
         }
 
-        const gpsResponse = await fetch(`http://localhost:5001/api/engines/${engineId}/realtime`);
+        const gpsResponse = await fetch(`http://3.107.29.47:5001/api/engines/${engineId}/realtime`);
         if (!gpsResponse.ok) {
           throw new Error(`HTTP error! status: ${gpsResponse.status}`);
         }
@@ -53,13 +53,9 @@ const TrainTable = ({ route }) => {
   };
 
   useEffect(() => {
-    // Fetch data initially
     fetchTrainData();
+    const intervalId = setInterval(fetchTrainData, 60000); // 60000 ms = 60 seconds
 
-    // Set up polling every 5 seconds
-    const intervalId = setInterval(fetchTrainData, 60000); // 5000 ms = 5 seconds
-
-    // Clear interval on component unmount
     return () => clearInterval(intervalId);
   }, [route.route_id]);
 
