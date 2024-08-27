@@ -1,111 +1,130 @@
 import React, { useEffect, useState } from 'react';
-import './TrainTable.css';
+import './AssignedEngines.css'; // Ensure this file has styles for the table
+import Modal from '../Modal'; // Import the Modal component
 
-const TrainTable = ({ route }) => {
-  const [trains, setTrains] = useState([]);
-  const [error, setError] = useState(null);
-
-  const fetchTrainData = async () => {
-    try {
-      const response = await fetch(`http://localhost:5001/api/trains/route/${route.route_id}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-
-      if (!Array.isArray(data)) {
-        throw new Error('Expected data to be an array');
-      }
-
-      const trainDataPromises = data.map(async (train) => {
-        const trainResponse = await fetch(`http://localhost:5001/api/fulltrains/train/${train.train_id}`);
-        if (!trainResponse.ok) {
-          throw new Error(`HTTP error! status: ${trainResponse.status}`);
-        }
-        const trainData = await trainResponse.json();
-        const engineId = trainData[0]?.engine_id;
-
-        if (!engineId) {
-          throw new Error('Engine ID not found');
-        }
-
-        const gpsResponse = await fetch(`http://localhost:5001/api/engines/${engineId}/realtime`);
-        if (!gpsResponse.ok) {
-          throw new Error(`HTTP error! status: ${gpsResponse.status}`);
-        }
-        const gpsData = await gpsResponse.json();
-
-        return {
-          ...train,
-          train_name: train.train_name,
-          direction: gpsData.direction,
-          current_station: gpsData.current_location || 'N/A',  // Directly use current_location
-          stations: gpsData.locations || [],
-        };
-      });
-
-      const trainsWithGPSData = await Promise.all(trainDataPromises);
-      setTrains(trainsWithGPSData);
-    } catch (error) {
-      console.error('Error fetching trains:', error);
-      setError(error.message);
-    }
-  };
+const AssignedEngines = () => {
+  const [trainEngines, setTrainEngines] = useState([]);
+  const [trains, setTrains] = useState({});
+  const [assignData, setAssignData] = useState({ train_id: '', engine_id: '' });
+  const [error, setError] = useState('');
+  const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
-    // Fetch data initially
-    fetchTrainData();
+    fetch('http://3.107.29.47:5001/api/fulltrains/')
+      .then(response => response.json())
+      .then(data => {
+        setTrainEngines(data);
+        data.forEach(item => {
+          fetch(`http://3.107.29.47:5001/api/trains/${item.train_id}/`)
+            .then(response => response.json())
+            .then(train => {
+              setTrains(prevTrains => ({
+                ...prevTrains,
+                [item.train_id]: train.train_name
+              }));
+            });
+        });
+      });
+  }, []);
 
-    // Set up polling every 5 seconds
-    const intervalId = setInterval(fetchTrainData, 60000); // 5000 ms = 5 seconds
+  const handleAssign = () => {
+    const { train_id, engine_id } = assignData;
 
-    // Clear interval on component unmount
-    return () => clearInterval(intervalId);
-  }, [route.route_id]);
+    if (!train_id || !engine_id) {
+      setError('Both train_id and engine_id are required.');
+      setModalOpen(true);
+      return;
+    }
 
-  if (error) {
-    return <div className="error">Error: {error}</div>;
-  }
+    fetch('http://3.107.29.47:5001/api/fulltrains/train/assign', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(assignData),
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.error) {
+          setError(data.error);
+          setModalOpen(true);
+        } else {
+          setError('');
+          setAssignData({ train_id: '', engine_id: '' });
+          fetch('http://3.107.29.47:5001/api/fulltrains/')
+            .then(response => response.json())
+            .then(data => setTrainEngines(data));
+        }
+      });
+  };
+
+  const handleUnassign = (train_id) => {
+    fetch(`http://3.107.29.47:5001/api/fulltrains/train/${train_id}/unassign`, {
+      method: 'PATCH',
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.error) {
+          setError(data.error);
+          setModalOpen(true);
+        } else {
+          setError('');
+          fetch('http://3.107.29.47:5001/api/fulltrains/')
+            .then(response => response.json())
+            .then(data => setTrainEngines(data));
+        }
+      });
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+    setError('');
+  };
 
   return (
-    <div className="train-table">
-      <h3>{route.route_name}</h3>
-      <table>
+    <div className="assigned-engines">
+      <h2>Currently Assigned Engines</h2>
+      <table className="train-details-table">
         <thead>
           <tr>
+            <th>Full Train ID</th>
+            <th>Train ID</th>
             <th>Train Name</th>
-            <th>Direction</th>
-            <th>Current Station</th>
-            <th>Station 1</th>
-            <th>Station 2</th>
-            <th>Station 3</th>
-            <th>Station 4</th>
-            <th>Station 5</th>
-            <th>Station 6</th>
-            <th>Station 7</th>
-            <th>Station 8</th>
-            <th>Station 9</th>
-            <th>Station 10</th>
+            <th>Engine ID</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          {trains.map((train) => (
-            <tr key={train.train_id}>
-              <td>{train.train_name}</td>
-              <td>{train.direction}</td>
-              <td>{train.current_station}</td>
-              {train.stations.slice(0, 10).map((station, index) => (
-                <td key={index}>{station.station} - {new Date(station.timestamp).toLocaleString()}</td>
-              ))}
-              {train.stations.length < 10 && Array.from({ length: 10 - train.stations.length }).map((_, index) => (
-                <td key={`empty-${index}`}>N/A</td>
-              ))}
+          {trainEngines.map(engine => (
+            <tr key={engine._id}>
+              <td>{engine.fulltrain_id}</td>
+              <td>{engine.train_id}</td>
+              <td>{trains[engine.train_id] || 'Loading...'}</td>
+              <td>{engine.engine_id}</td>
+              <td>
+                <button onClick={() => handleUnassign(engine.train_id)}>Unassign</button>
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
+      <div className="assign-section">
+        <h3>Assign Engine</h3>
+        <input
+          type="text"
+          placeholder="Train ID"
+          value={assignData.train_id}
+          onChange={(e) => setAssignData({ ...assignData, train_id: e.target.value })}
+        />
+        <input
+          type="text"
+          placeholder="Engine ID"
+          value={assignData.engine_id}
+          onChange={(e) => setAssignData({ ...assignData, engine_id: e.target.value })}
+        />
+        <button onClick={handleAssign}>Assign</button>
+      </div>
+      <Modal isOpen={modalOpen} onClose={closeModal} message={error} />
     </div>
   );
 };
 
-export default TrainTable;
+export default AssignedEngines;
